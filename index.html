@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Girlfriend Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      margin: 0;
+    }
+    #chatbox {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      background: #1a1a1a;
+      display: flex;
+      flex-direction: column;
+    }
+    .msg {
+      max-width: 75%;
+      margin: 0.25rem 0;
+      padding: 0.75rem 1rem;
+      border-radius: 20px;
+      line-height: 1.5;
+    }
+    .user { align-self: flex-end; background: #444; }
+    .ai { align-self: flex-start; background: #2c2c2c; }
+    .typing { font-style: italic; opacity: 0.6; }
+    #inputarea {
+      display: flex;
+      padding: 1rem;
+      background: #222;
+    }
+    input {
+      flex: 1;
+      font-size: 1rem;
+      padding: 0.75rem;
+      border-radius: 10px;
+      background: #000;
+      color: #fff;
+      border: none;
+    }
+    button {
+      margin-left: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      background: #444;
+      color: #fff;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="chatbox"></div>
+  <div id="inputarea">
+    <input id="userinput" type="text" placeholder="Type a message..." autocomplete="off" />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <script>
+    const chatbox = document.getElementById("chatbox");
+    const input = document.getElementById("userinput");
+
+    function appendMessage(text, type) {
+      const msg = document.createElement("div");
+      msg.className = "msg " + type;
+      msg.textContent = text;
+      chatbox.appendChild(msg);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = input.value.trim();
+      if (!text) return;
+      appendMessage(text, "user");
+      input.value = "";
+
+      const typing = document.createElement("div");
+      typing.className = "msg ai typing";
+      typing.textContent = "Typing...";
+      chatbox.appendChild(typing);
+      chatbox.scrollTop = chatbox.scrollHeight;
+
+      const response = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      });
+      const data = await response.json();
+
+      chatbox.removeChild(typing);
+      appendMessage(data.reply, "ai");
+    }
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html>
